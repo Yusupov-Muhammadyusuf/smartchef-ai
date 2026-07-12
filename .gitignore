@@ -1,0 +1,19 @@
+# Virtual environment
+.venv/
+
+# Environment variables (secrets/keys)
+.env
+
+# Database
+db.sqlite3
+
+# User uploaded media
+media/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# IDE settings
+.vscode/
+.idea/

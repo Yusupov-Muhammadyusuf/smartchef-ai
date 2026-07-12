@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Custom Recipe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="bg-light py-4">
+    <div class="container px-3" style="max-width: 600px;">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+            <img src="{{ image_url }}" class="img-fluid w-100" style="max-height: 250px; object-fit: cover;" alt="Ingredients">
+            <div class="card-body p-4">
+                <h3 class="card-title text-success mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text"></i> Chef's Recipe Instruction
+                </h3>
+                
+                <div id="recipe-text" class="recipe-content fs-6 text-dark lh-base">
+                    {{ recipe }}
+                </div>
+                
+                <div class="d-flex justify-content-center align-items-center gap-3 mt-5">
+                    <a href="{% url 'index' %}" class="btn btn-outline-success rounded-pill px-4 d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-arrow-left-short fs-5"></i> Scan Another Mix
+                    </a>
+                    
+                    <button id="download-btn" class="btn btn-success rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 42px; height: 42px;" title="Download Recipe">
+                        <i class="bi bi-download fs-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const recipeContent = document.getElementById('recipe-text');
+        const rawMarkdown = recipeContent.innerHTML;
+        recipeContent.innerHTML = marked.parse(rawMarkdown);
+
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const recipeText = recipeContent.innerText;
+            const blob = new Blob([recipeText], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'chef_recipe.txt');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>
