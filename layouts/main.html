@@ -15,14 +15,22 @@
         <h1 class="display-5 fw-bold text-dark mb-3">AI Smart Chef</h1>
         <p class="text-muted mb-5 fs-5">Gather your ingredients anywhere, snap a photo, and get a professional recipe instantly!</p>
         
+        <div id="cameraContainer" class="d-none mb-4 mx-auto" style="max-width: 500px;">
+            <video id="video" autoplay playsinline class="w-100 rounded shadow-sm bg-dark" style="max-height: 350px; object-fit: cover;"></video>
+            <button type="button" id="captureBtn" class="btn btn-danger btn-lg rounded-pill mt-3 px-4">
+                <i class="bi bi-camera-fill"></i> Rasmga olish
+            </button>
+            <canvas id="canvas" class="d-none"></canvas>
+        </div>
+
         <form method="POST" enctype="multipart/form-data" action="{% url 'generate_recipe' %}" id="uploadForm">
             {% csrf_token %}
             <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 max-width-500 mx-auto">
                 
-                <label for="scanInput" class="btn btn-success btn-lg px-4 py-3 rounded-pill shadow d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1">
+                <button type="button" id="scanBtn" class="btn btn-success btn-lg px-4 py-3 rounded-pill shadow d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1">
                     <i class="bi bi-camera-fill fs-4"></i> Scan Ingredients
-                </label>
-                <input type="file" name="ingredients_image" id="scanInput" accept="image/*" capture="environment" class="d-none" onchange="document.getElementById('uploadForm').submit()">
+                </button>
+                <input type="file" name="ingredients_image" id="scanInput" accept="image/*" capture="environment" class="d-none">
         
                 <label for="uploadInput" class="btn btn-outline-success btn-lg px-4 py-3 rounded-pill shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1">
                     <i class="bi bi-image fs-4"></i> Upload Photo
@@ -32,5 +40,60 @@
             </div>
         </form>
     </div>
+
+    <script>
+        const scanBtn = document.getElementById('scanBtn');
+        const scanInput = document.getElementById('scanInput');
+        const uploadForm = document.getElementById('uploadForm');
+        
+        const cameraContainer = document.getElementById('cameraContainer');
+        const video = document.getElementById('video');
+        const captureBtn = document.getElementById('captureBtn');
+        const canvas = document.getElementById('canvas');
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        scanBtn.addEventListener('click', async () => {
+            if (isMobile) {
+                scanInput.click();
+            } else {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    video.srcObject = stream;
+                    cameraContainer.classList.remove('d-none');
+                    scanBtn.parentElement.classList.add('d-none');
+                } catch (err) {
+                    alert("Kameraga ruxsat berilmadi yoki kamera topilmadi. Iltimos brauzer sozlamalarini tekshiring.");
+                    scanInput.click();
+                }
+            }
+        });
+
+        scanInput.addEventListener('change', () => {
+            if (scanInput.files.length > 0) {
+                uploadForm.submit();
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+                
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                scanInput.files = dataTransfer.files;
+
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                
+                uploadForm.submit();
+            }, 'image/jpeg');
+        });
+    </script>
 </body>
 </html>
